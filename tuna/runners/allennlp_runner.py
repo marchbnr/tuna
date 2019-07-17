@@ -4,6 +4,7 @@ import logging
 import _jsonnet
 import json
 
+import torch
 from datetime import datetime
 from allennlp.common.params import Params, parse_overrides, with_fallback
 from allennlp.commands.train import train_model
@@ -70,6 +71,10 @@ class AllenNlpRunner(Runner):
             if default_args.num_gpus == 0:
                 logger.warning(f"No GPU specified, using CPU.")
                 file_dict["trainer"]["cuda_device"] = -1
+
+            if default_args.cpus_per_trial:
+                logger.debug(f"Limiting pytorch to {default_args.cpus_per_trial} threads")
+                torch.set_num_threads(default_args.cpus_per_trial)
 
             overrides_dict = parse_overrides(run_args.overrides)
 
