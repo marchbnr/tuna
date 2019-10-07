@@ -4,6 +4,8 @@ import os
 import logging
 import _jsonnet
 import json
+
+import torch
 from ray import tune
 from ray.tune import Experiment, register_trainable
 from allennlp.common.params import Params
@@ -96,6 +98,10 @@ class AllenNlpExperiment:
         self._run_parameters = run_parameters or {}
         self._hyperparameters = hyperparameters or {}
         self._include_packages = include_packages or []
+        if "cpu" in resources_per_trial and resources_per_trial["cpu"] > 0:
+            num_pytorch_threads = resources_per_trial["cpu"]
+            logger.debug(f"Limiting pytorch to {num_pytorch_threads} threads")
+            torch.set_num_threads(num_pytorch_threads)
 
     def to_ray_experiment(self) -> Experiment:
         with open(self._parameter_file, "r") as parameter_f:
